@@ -73,21 +73,20 @@ async function handleMessage(sender_psid, received_message) {
     let aiReply = "দুঃখিত, আমি এই মুহূর্তে উত্তর দিতে পারছি না। একটু পরে আবার চেষ্টা করুন।";
 
     try {
+        // Use the official model name correctly
         const model = genAI.getGenerativeModel({ 
-            model: "gemini-1.5-flash",
-            systemInstruction: SYSTEM_PROMPT 
+            model: "gemini-1.5-flash"
         });
 
-        const safetySettings = [
-            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-        ];
-
+        // Simpler call for better compatibility
         const result = await model.generateContent({
-            contents: [{ role: 'user', parts: [{ text: received_message }] }],
-            safetySettings: safetySettings
+            contents: [{ role: 'user', parts: [{ text: SYSTEM_PROMPT + "\n\nCustomer: " + received_message }] }],
+            safetySettings: [
+                { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+                { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+                { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            ]
         });
 
         const response = await result.response;
@@ -95,9 +94,7 @@ async function handleMessage(sender_psid, received_message) {
         
     } catch (error) {
         console.error("Error generating AI response:", error);
-        if (error.message && error.message.includes('SAFETY')) {
-            aiReply = "আপনার এই সমস্যাটি নিয়ে আমাদের এখানে সফল চিকিৎসা রয়েছে। বিস্তারিত জানতে সরাসরি আমাদের চেম্বারে আসতে পারেন অথবা ফোন করতে পারেন: ০১৭১৭-২১২৩৯৪।";
-        }
+        aiReply = "আপনার স্বাস্থ্য সমস্যাটি নিয়ে আমি কথা বলতে পারছি না। তবে এটি নিয়ে চিন্তার কিছু নেই, আপনি সরাসরি আমাদের চেম্বারে এসে বা ফোনে কথা বলে বিশেষজ্ঞ পরামর্শ নিতে পারেন। ফোন: ০১৭১৭-২১২৩৯৪";
     }
 
     callSendAPI(sender_psid, { "text": aiReply });
