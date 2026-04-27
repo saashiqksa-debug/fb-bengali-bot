@@ -87,19 +87,31 @@ async function handleMessage(sender_psid, received_message) {
 
     try {
         // Generate AI Response using Gemini
+        // We use BLOCK_NONE to allow medical consultation questions
         const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: received_message,
+            model: 'gemini-1.5-flash',
+            contents: [{ parts: [{ text: received_message }] }],
             config: {
                 systemInstruction: SYSTEM_PROMPT,
+                safetySettings: [
+                    { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_NONE' },
+                    { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_NONE' }
+                ]
             }
         });
         
-        if (response.text) {
+        if (response && response.text) {
             aiReply = response.text;
+        } else if (response && response.candidates && response.candidates[0].content) {
+            aiReply = response.candidates[0].content.parts[0].text;
         }
     } catch (error) {
         console.error("Error generating AI response:", error);
+        if (error.message && error.message.includes('SAFETY')) {
+            aiReply = "আপনার এই স্বাস্থ্য সমস্যাটি নিয়ে আমি কথা বলতে পারছি না। তবে এটি নিয়ে চিন্তার কিছু নেই, আপনি সরাসরি আমাদের চেম্বারে এসে বা ফোনে কথা বলে বিশেষজ্ঞ পরামর্শ নিতে পারেন। ফোন: ০১৭১৭-২১২৩৯৪";
+        }
     }
 
     // Prepare message payload
