@@ -136,7 +136,7 @@ async function handleMessage(sender_psid, received_message) {
     let aiReply = "দুঃখিত, আমি এই মুহূর্তে উত্তর দিতে পারছি না। একটু পরে আবার চেষ্টা করুন।";
 
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         // ইতিহাস ঠিক করা (যাতে পরপর দুটি user বা model মেসেজ না যায়)
         let safeHistory = [];
